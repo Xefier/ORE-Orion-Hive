@@ -24,14 +24,5 @@ fi
 
 . "$CUSTOM_CONFIG_FILENAME"
 
-# Define the new stats log file
-STATS_LOG_FILE="${CUSTOM_LOG_BASENAME}-stats.log"
-
 # TODO: Configure gpu, cpu, block size, pool, etc in flightsheet
-./OrionClient mine --key "$TEMPLATE" --gpu --disable-cpu --gpu-batch-size 2048 --gpu-block-size 512 --pool excalivator > /dev/null 2>&1 &
-
-# Get the miner's PID
-MINER_PID=$!
-
-# Monitor the miner output in the background and log stats
-tail --pid=$MINER_PID -f /proc/$MINER_PID/fd/1 > "$STATS_LOG_FILE" &
+./OrionClient mine --key "$TEMPLATE" --gpu --disable-cpu --gpu-batch-size 2048 --gpu-block-size 512 --pool excalivator

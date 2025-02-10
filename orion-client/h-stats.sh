@@ -2,17 +2,27 @@
 
 . $MINER_DIR/$CUSTOM_MINER/h-manifest.conf
 
-# Define the stats log file
-STATS_LOG_FILE="${CUSTOM_LOG_BASENAME}-stats.log"
+# Define a temporary snapshot file
+SNAPSHOT_FILE="/tmp/miner_snapshot.log"
 
-# Check if the stats log file exists and is readable
-if [[ ! -f "$STATS_LOG_FILE" || ! -s "$STATS_LOG_FILE" ]]; then
-  echo "Error: Stats log file is missing or empty." >&2
-  HASHRATES=""
+# Take a snapshot of the miner's output
+pgrep -f "OrionClient" > /dev/null
+if [[ $? -eq 0 ]]; then
+  # Capture the miner's live output into the snapshot file
+  timeout 1s cat /proc/$(pgrep -f "OrionClient" | head -n 1)/fd/1 > "$SNAPSHOT_FILE" 2>/dev/null
 else
-  # Extract Avg Hashrate values for GPUs (skipping CPU row)
-  HASHRATES=$(awk '/Pool: Excalivator Pool/ {found=1} found && $3 == "Mining" && $5 ~ /^[0-9.]+$/ {print $5}' "$STATS_LOG_FILE")
+  echo "Error: Miner process not running." >&2
+  exit 1
 fi
+
+# Parse the snapshot file for stats
+if [[ ! -s "$SNAPSHOT_FILE" ]]; then
+  echo "Error: Snapshot file is empty or unavailable." >&2
+  exit 1
+fi
+
+# Extract Avg Hashrate values for GPUs (skipping CPU row)
+HASHRATES=$(awk '/Pool: Excalivator Pool/ {found=1} found && $3 == "Mining" && $5 ~ /^[0-9.]+$/ {print $5}' "$SNAPSHOT_FILE")
 
 # Format hashrates as an array, defaulting to [0] if empty
 hs=$(echo "$HASHRATES" | tr '\n' ',' | sed 's/,$//')
