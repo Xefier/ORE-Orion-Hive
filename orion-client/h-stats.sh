@@ -3,7 +3,7 @@
 . $MINER_DIR/$CUSTOM_MINER/h-manifest.conf
 
 # Define a separate stats log file to avoid interfering with the miner
-STATS_LOG_FILE="${CUSTOM_LOG_BASENAME}-stats.log"
+STATS_LOG_FILE="${CUSTOM_LOG_BASENAME}.log"
 
 # Check if the stats log file exists and is readable
 if [[ ! -f "$STATS_LOG_FILE" || ! -s "$STATS_LOG_FILE" ]]; then
