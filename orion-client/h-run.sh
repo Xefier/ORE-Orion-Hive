@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# TODO: Remove this after replacing with Standalone build that doesn't require .NET 8
+if ! dotnet --list-sdks 2>/dev/null | grep -q "8.0"; then
+    echo "dotnet-sdk-8.0 is not installed. Installing..."
+    sudo apt-get update && sudo apt-get install -y dotnet-sdk-8.0
+else
+    echo "dotnet-sdk-8.0 is already installed."
+fi
+
+
 # Load h-manifest configuration
 if [[ ! -f h-manifest.conf ]]; then
     echo "h-manifest.conf not found. Exiting..."
