@@ -25,4 +25,4 @@ fi
 . "$CUSTOM_CONFIG_FILENAME"
 
 # TODO: Configure gpu, cpu, block size, pool, etc in flightsheet
-./OrionClient mine --key "$TEMPLATE" --gpu --disable-cpu --gpu-batch-size 2048 --gpu-block-size 512 --pool excalivator
+./OrionClient mine --key "$TEMPLATE" --gpu --disable-cpu --gpu-batch-size 2048 --gpu-block-size 512 --pool excalivator | tee "${CUSTOM_LOG_BASENAME}.log"

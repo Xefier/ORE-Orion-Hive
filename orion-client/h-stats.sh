@@ -2,16 +2,49 @@
 
 . $MINER_DIR/$CUSTOM_MINER/h-manifest.conf
 
-#STATS_UPTIME=$(curl --connect-timeout 2 --max-time 30 --silent --noproxy '*' http://127.0.0.1:4000/uptime)
+# Get miner log from the custom log basename
+LOG_FILE="${CUSTOM_LOG_BASENAME}.log"
+
+# Check if the log file exists and is readable
+if [[ ! -f "$LOG_FILE" || ! -s "$LOG_FILE" ]]; then
+  echo "Error: Log file is missing or empty." >&2
+  HASHRATES=""
+else
+  # Extract Avg Hashrate values for GPUs (skipping CPU row)
+  HASHRATES=$(grep -A 10 "Pool: Excalivator Pool" "$LOG_FILE" | awk 'NR > 2 && $3 == "Mining" {print $5}')
+fi
+
+# Format hashrates as an array, defaulting to [0] if empty
+hs=$(echo "$HASHRATES" | tr '\n' ',' | sed 's/,$//')
+hs=${hs:-0}
+
+# Calculate total hashrate (sum of all GPUs) in kH/s, defaulting to 0
+khs=$(echo "$HASHRATES" | awk '{sum+=$1} END {print sum}')
+khs=${khs:-0}
+
+# Fetch GPU temperature and fan speed using nvidia-smi
+if command -v nvidia-smi &> /dev/null; then
+  temp=$(nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits | tr '\n' ',' | sed 's/,$//')
+  fan=$(nvidia-smi --query-gpu=fan.speed --format=csv,noheader,nounits | tr '\n' ',' | sed 's/,$//')
+else
+  echo "Error: nvidia-smi command not found. Defaulting temp and fan values." >&2
+  temp="[60]"
+  fan="[25]"
+fi
+
+# Ensure temp and fan arrays are JSON-compatible
+temp=${temp:-[60]}
+fan=${fan:-[25]}
+
+# Get uptime from the system
 uptime=$(awk '{print $1}' /proc/uptime)
-#uptime=`echo $STATS_UPTIME | jq -r '.Seconds'`
-#uptime=1
-hs=[0.001]
-temp=[60]
-fan=[25]
+
+# Other fixed parameters
 ver="1.0.0"
-bus_numbers=[null]
+bus_numbers="[null]"
 
-khs=0.001
-stats=$(jq -n --argjson uptime "$uptime" --argjson hs "$hs" --argjson temp "$temp" --argjson fan "$fan" --arg algo "COAL/ORE" --arg ver "$ver" --argjson bus_numbers "$bus_numbers" '{$hs, $temp, $fan, $uptime, $algo, $ver, $bus_numbers}')
+# Construct the stats JSON
+stats=$(jq -n --argjson uptime "$uptime" --argjson hs "[$hs]" --argjson temp "[$temp]" --argjson fan "[$fan]" --arg algo "$CUSTOM_ALGO" --arg ver "$ver" --argjson bus_numbers "$bus_numbers" '{$hs, $temp, $fan, $uptime, $algo, $ver, $bus_numbers}')
 
+# Output stats
+echo "$stats"
