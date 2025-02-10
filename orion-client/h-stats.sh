@@ -5,6 +5,10 @@
 # Define the JSON log file
 JSON_LOG_FILE="events.log"
 DEFAULT_LOG_PATH="/hive/miners/custom/orion-client/events.log"
+LOG_FILE="custom.log"
+
+# Redirect all output to a log file for debugging
+exec > >(tee -a "$LOG_FILE") 2>&1
 
 # Check if the JSON log file exists and is readable
 if [[ ! -f "$JSON_LOG_FILE" || ! -s "$JSON_LOG_FILE" ]]; then
