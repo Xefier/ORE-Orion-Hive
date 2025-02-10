@@ -11,7 +11,7 @@ if [[ ! -f "$LOG_FILE" || ! -s "$LOG_FILE" ]]; then
   HASHRATES=""
 else
   # Extract Avg Hashrate values for GPUs (skipping CPU row)
-  HASHRATES=$(grep -A 10 "Pool: Excalivator Pool" "$LOG_FILE" | awk 'NR > 2 && $3 == "Mining" {print $5}')
+  HASHRATES=$(awk '/Pool: Excalivator Pool/ {found=1} found && $3 == "Mining" && $5 ~ /^[0-9.]+$/ {print $5}' "$LOG_FILE")
 fi
 
 # Format hashrates as an array, defaulting to [0] if empty
