@@ -2,16 +2,16 @@
 
 . $MINER_DIR/$CUSTOM_MINER/h-manifest.conf
 
-# Get miner log from the custom log basename
-LOG_FILE="${CUSTOM_LOG_BASENAME}.log"
+# Define a separate stats log file to avoid interfering with the miner
+STATS_LOG_FILE="${CUSTOM_LOG_BASENAME}-stats.log"
 
-# Check if the log file exists and is readable
-if [[ ! -f "$LOG_FILE" || ! -s "$LOG_FILE" ]]; then
-  echo "Error: Log file is missing or empty." >&2
+# Check if the stats log file exists and is readable
+if [[ ! -f "$STATS_LOG_FILE" || ! -s "$STATS_LOG_FILE" ]]; then
+  echo "Error: Stats log file is missing or empty." >&2
   HASHRATES=""
 else
   # Extract Avg Hashrate values for GPUs (skipping CPU row)
-  HASHRATES=$(awk '/Pool: Excalivator Pool/ {found=1} found && $3 == "Mining" && $5 ~ /^[0-9.]+$/ {print $5}' "$LOG_FILE")
+  HASHRATES=$(awk '/Pool: Excalivator Pool/ {found=1} found && $3 == "Mining" && $5 ~ /^[0-9.]+$/ {print $5}' "$STATS_LOG_FILE")
 fi
 
 # Format hashrates as an array, defaulting to [0] if empty
